@@ -1,0 +1,96 @@
+#!/bin/bash
+
+# Function to display the Tic-Tac-Toe board
+display_board() {
+  local board_string="${board[*]}" #Important, create a local copy
+  printf "
+     %s | %s | %s
+    ---|---|---
+     %s | %s | %s
+    ---|---|---
+     %s | %s | %s
+  \n" "${board_string[@]}"
+}
+
+# Function to check if a player has won
+check_win() {
+  local player=$1
+  # Check rows, columns, and diagonals
+  if [[ "$board[0]" == "$player" && "$board[1]" == "$player" && "$board[2]" == "$player" ]] ||
+     [[ "$board[3]" == "$player" && "$board[4]" == "$player" && "$board[5]" == "$player" ]] ||
+     [[ "$board[6]" == "$player" && "$board[7]" == "$player" && "$board[8]" == "$player" ]] ||
+     [[ "$board[0]" == "$player" && "$board[3]" == "$player" && "$board[6]" == "$player" ]] ||
+     [[ "$board[1]" == "$player" && "$board[4]" == "$player" && "$board[7]" == "$player" ]] ||
+     [[ "$board[2]" == "$player" && "$board[5]" == "$player" && "$board[8]" == "$player" ]] ||
+     [[ "$board[0]" == "$player" && "$board[4]" == "$player" && "$board[8]" == "$player" ]] ||
+     [[ "$board[2]" == "$player" && "$board[4]" == "$player" && "$board[6]" == "$player" ]]; then
+    return 0 # Return 0 for true (won)
+  else
+    return 1 # Return 1 for false (not won)
+  fi
+}
+
+# Function to check if the board is full (a tie)
+check_tie() {
+  for cell in "${board[@]}"; do
+    if [[ "$cell" == " " ]]; then
+      return 1 # Return 1 for false (not full)
+    fi
+  done
+  return 0 # Return 0 for true (full)
+}
+
+# Function to get player input
+get_player_move() {
+  local player=$1
+  while true; do
+    read -p "Player $player, enter your move (1-9): " move
+    # Check if the input is a number between 1 and 9
+    if [[ ! "$move" =~ ^[1-9]$ ]]; then
+      echo "Invalid input. Please enter a number between 1 and 9."
+      continue
+    fi
+    # Adjust the move to be 0-indexed for the array
+    local index=$((move - 1))
+    # Check if the cell is already occupied
+    if [[ "${board[$index]}" != " " ]]; then
+      echo "That cell is already occupied. Please choose an empty cell."
+      continue
+    fi
+    break # Exit the loop if the input is valid and the cell is empty
+  done
+  echo "$index" # return the index
+}
+
+# --- Main Game Logic ---
+# Initialize the board
+declare -a board=(" " " " " " " " " " " " " ")
+player="X"
+
+# Game loop
+while true; do
+  display_board
+  index=$(get_player_move "$player")
+  board[$index]="$player" #use the index from the function
+
+  # Check for win
+  if check_win "$player"; then
+    display_board
+    echo "Player $player wins!"
+    break
+  fi
+
+  # Check for tie
+  if check_tie; then
+    display_board
+    echo "It's a tie!"
+    break
+  fi
+
+  # Switch players
+  if [[ "$player" == "X" ]]; then
+    player="O"
+  else
+    player="X"
+  fi
+done
